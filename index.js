@@ -10,12 +10,14 @@ const ParkingLot = require("./models/ParkingLot"); // Import the ParkingLot mode
 
 const app = express();
 
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views")); // Specify views directory
 app.use(express.static("public")); // Serve static files like CSS
 
+// MongoDB Connection
 mongoose
   .connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
