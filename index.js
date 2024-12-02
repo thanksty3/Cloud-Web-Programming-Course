@@ -16,7 +16,7 @@ app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views")); // Specify views directory
 app.use(express.static("public")); // Serve static files like CSS
 
-// MongoDB Connection
+
 mongoose
   .connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
@@ -27,7 +27,7 @@ mongoose
     console.error("\x1b[31mMongoDB connection error:\x1b[0m", err)
   );
 
-// Scrape Data from LSU Parking Page
+  
 async function scrapeParkingData() {
   console.log("\x1b[36mStarting data scraping process...\x1b[0m"); // Styled log
   try {
@@ -55,14 +55,12 @@ async function scrapeParkingData() {
   }
 }
 
-// Routes
-
-// Home Route (Welcome Page)
+// Home Route 
 app.get("/", (req, res) => {
   res.render("index", { title: "Welcome to LSU Parking Manager" });
 });
 
-// Availability Page (View Lots)
+// Availability Page
 app.get("/availability", async (req, res) => {
   try {
     const { lotName, availability } = req.query; // Get query parameters
@@ -77,7 +75,7 @@ app.get("/availability", async (req, res) => {
     }
 
     const lots = await ParkingLot.find(filter); // Fetch filtered data from MongoDB
-    res.render("availability", { lots }); // Pass data to the EJS template
+    res.render("availability", { lots }); 
   } catch (error) {
     console.error("\x1b[31mError fetching parking lot data:\x1b[0m", error);
     res.status(500).send("Internal Server Error");
@@ -85,7 +83,7 @@ app.get("/availability", async (req, res) => {
 });
 
 
-// Admin Page (Manage Lots)
+// Admin Page 
 app.get("/admin", async (req, res) => {
   try {
     const lots = await ParkingLot.find();
@@ -95,7 +93,7 @@ app.get("/admin", async (req, res) => {
   }
 });
 
-// Add New Lot (Admin POST API)
+// Add New Lot
 app.post("/admin/add", async (req, res) => {
   try {
     const { lotName, availability } = req.body;
