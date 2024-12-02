@@ -10,7 +10,6 @@ const ParkingLot = require("./models/ParkingLot"); // Import the ParkingLot mode
 
 const app = express();
 
-
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
@@ -23,11 +22,14 @@ mongoose
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
-  .then(() => console.log("MongoDB connected successfully"))
-  .catch((err) => console.error("MongoDB connection error:", err));
+  .then(() => console.log("\x1b[32mMongoDB connected successfully\x1b[0m")) // Styled console log
+  .catch((err) =>
+    console.error("\x1b[31mMongoDB connection error:\x1b[0m", err)
+  );
 
 // Scrape Data from LSU Parking Page
 async function scrapeParkingData() {
+  console.log("\x1b[36mStarting data scraping process...\x1b[0m"); // Styled log
   try {
     const url = "https://www.lsu.edu/parking/availability.php";
     const response = await axios.get(url);
@@ -42,12 +44,14 @@ async function scrapeParkingData() {
       }
     });
 
+    console.log(`\x1b[33mScraped ${lots.length} parking lots.\x1b[0m`);
+
     // Clear existing data and insert new data
     await ParkingLot.deleteMany({});
-    await ParkingLot.insertMany(lots);
-    console.log("Parking lot data updated successfully");
+    const result = await ParkingLot.insertMany(lots);
+    console.log(`\x1b[32mInserted ${result.length} lots into MongoDB\x1b[0m`);
   } catch (error) {
-    console.error("Error scraping parking lot data:", error);
+    console.error("\x1b[31mError scraping parking lot data:\x1b[0m", error);
   }
 }
 
@@ -61,13 +65,25 @@ app.get("/", (req, res) => {
 // Availability Page (View Lots)
 app.get("/availability", async (req, res) => {
   try {
-    const lots = await ParkingLot.find(); // Fetch parking lot data from MongoDB
+    const { lotName, availability } = req.query; // Get query parameters
+    const filter = {};
+
+    if (lotName) {
+      filter.lotName = new RegExp(lotName, "i"); // Case-insensitive partial match
+    }
+
+    if (availability) {
+      filter.availability = { $gte: `${availability}%` }; // Matches availability >= input percentage
+    }
+
+    const lots = await ParkingLot.find(filter); // Fetch filtered data from MongoDB
     res.render("availability", { lots }); // Pass data to the EJS template
   } catch (error) {
-    console.error("Error fetching parking lot data:", error);
+    console.error("\x1b[31mError fetching parking lot data:\x1b[0m", error);
     res.status(500).send("Internal Server Error");
   }
 });
+
 
 // Admin Page (Manage Lots)
 app.get("/admin", async (req, res) => {
@@ -85,8 +101,10 @@ app.post("/admin/add", async (req, res) => {
     const { lotName, availability } = req.body;
     const newLot = new ParkingLot({ lotName, availability });
     await newLot.save();
+    console.log(`\x1b[32mAdded new lot: ${lotName} - ${availability}\x1b[0m`);
     res.redirect("/admin");
   } catch (error) {
+    console.error("\x1b[31mError adding new parking lot:\x1b[0m", error);
     res.status(500).send("Error adding new parking lot");
   }
 });
@@ -95,8 +113,10 @@ app.post("/admin/add", async (req, res) => {
 app.post("/admin/delete/:id", async (req, res) => {
   try {
     await ParkingLot.findByIdAndDelete(req.params.id);
+    console.log(`\x1b[33mDeleted lot with ID: ${req.params.id}\x1b[0m`);
     res.redirect("/admin");
   } catch (error) {
+    console.error("\x1b[31mError deleting parking lot:\x1b[0m", error);
     res.status(500).send("Error deleting parking lot");
   }
 });
@@ -107,6 +127,7 @@ app.get("/api/parking", async (req, res) => {
     const lots = await ParkingLot.find();
     res.json(lots);
   } catch (error) {
+    console.error("\x1b[31mError fetching parking lot data:\x1b[0m", error);
     res.status(500).send("Error fetching parking lot data");
   }
 });
@@ -117,7 +138,7 @@ app.get("/scrape", async (req, res) => {
     await scrapeParkingData();
     res.redirect("/availability");
   } catch (error) {
-    console.error("Error during scraping:", error);
+    console.error("\x1b[31mError during scraping:\x1b[0m", error);
     res.status(500).send("Error updating parking lot data");
   }
 });
@@ -125,6 +146,6 @@ app.get("/scrape", async (req, res) => {
 // Start the Server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, async () => {
-  console.log(`Server started at http://localhost:${PORT}`);
+  console.log(`\x1b[34mServer started at http://localhost:${PORT}\x1b[0m`);
   await scrapeParkingData(); // Automatically scrape data on server start
 });

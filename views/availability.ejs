@@ -30,24 +30,35 @@
         <h1>Parking Availability</h1>
     </header>
 
-    <div class="container mt-5">
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Lot Name</th>
-                    <th>Availability</th>
-                </tr>
-            </thead>
-            <tbody>
-                <% lots.forEach(lot => { %>
-                <tr>
-                    <td><%= lot.lotName %></td>
-                    <td><%= lot.availability %></td>
-                </tr>
-                <% }); %>
-            </tbody>
-        </table>
-    </div>
+    <form method="GET" action="/availability" class="mb-4">
+        <div class="form-group">
+          <label for="lotName">Search by Lot Name:</label>
+          <input type="text" id="lotName" name="lotName" class="form-control" placeholder="Enter lot name">
+        </div>
+        <div class="form-group">
+          <label for="availability">Minimum Availability (%):</label>
+          <input type="number" id="availability" name="availability" class="form-control" placeholder="Enter minimum percentage">
+        </div>
+        <button type="submit" class="btn btn-primary mt-2">Search</button>
+      </form>
+      
+      <table class="table table-striped mt-4">
+        <thead>
+          <tr>
+            <th>Lot Name</th>
+            <th>Availability</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% lots.forEach(lot => { %>
+            <tr>
+              <td><%= lot.lotName %></td>
+              <td><%= lot.availability %></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+      
 
     <!-- Footer Section -->
     <footer class="text-center py-4">

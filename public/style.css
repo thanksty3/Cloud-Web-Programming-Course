@@ -59,3 +59,10 @@ footer {
 .nav-item.active {
     font-weight: normal;
 }
+
+@media (max-width: 768px) {
+    header {
+      text-align: center;
+      padding: 10px;
+    }
+  }
