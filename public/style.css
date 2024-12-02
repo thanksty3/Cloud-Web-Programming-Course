@@ -22,6 +22,7 @@ footer {
 
 .nav-title{
     display: block;
+    justify-content: center;
     font-size: x-large;
     margin: 0;
     padding: 0 20px 0 0;
@@ -30,6 +31,7 @@ footer {
 
 .navbar li {
     float: left;
+    display: block;
 }
 
 .navbar ul {
@@ -37,6 +39,7 @@ footer {
     float: left;
     padding: 0;
     margin: 0;
+    display: flex;
 }
 
 .navbar a {
@@ -60,9 +63,10 @@ footer {
     font-weight: normal;
 }
 
-@media (max-width: 768px) {
-    header {
-      text-align: center;
-      padding: 10px;
-    }
-  }
+a:hover {
+    color: red;
+}
+
+.menu-element {
+    display: block;
+}

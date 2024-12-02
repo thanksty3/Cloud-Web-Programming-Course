@@ -27,7 +27,7 @@ mongoose
     console.error("\x1b[31mMongoDB connection error:\x1b[0m", err)
   );
 
-  
+
 async function scrapeParkingData() {
   console.log("\x1b[36mStarting data scraping process...\x1b[0m"); // Styled log
   try {
@@ -38,7 +38,7 @@ async function scrapeParkingData() {
 
     $("table tbody tr").each((index, element) => {
       const lotName = $(element).find("td:nth-child(1)").text().trim();
-      const availability = $(element).find("td:nth-child(2)").text().trim();
+      const availability = $(element).find("td:nth-child(3)").text().trim();
       if (lotName && availability) {
         lots.push({ lotName, availability });
       }
