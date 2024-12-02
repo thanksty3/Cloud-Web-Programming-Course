@@ -3,28 +3,55 @@ const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const path = require("path");
+const axios = require("axios");
+const cheerio = require("cheerio");
 
 const ParkingLot = require("./models/ParkingLot"); // Import the ParkingLot model
 
 const app = express();
 
-// Middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views")); // Specify views directory
+app.use(express.static("public")); // Serve static files like CSS
 
-// MongoDB Connection
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
+mongoose
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => console.log("MongoDB connected successfully"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
+// Scrape Data from LSU Parking Page
+async function scrapeParkingData() {
+  try {
+    const url = "https://www.lsu.edu/parking/availability.php";
+    const response = await axios.get(url);
+    const $ = cheerio.load(response.data);
+    const lots = [];
+
+    $("table tbody tr").each((index, element) => {
+      const lotName = $(element).find("td:nth-child(1)").text().trim();
+      const availability = $(element).find("td:nth-child(2)").text().trim();
+      if (lotName && availability) {
+        lots.push({ lotName, availability });
+      }
+    });
+
+    // Clear existing data and insert new data
+    await ParkingLot.deleteMany({});
+    await ParkingLot.insertMany(lots);
+    console.log("Parking lot data updated successfully");
+  } catch (error) {
+    console.error("Error scraping parking lot data:", error);
+  }
+}
+
 // Routes
 
-// Home Route (Optional Welcome Page)
+// Home Route (Welcome Page)
 app.get("/", (req, res) => {
   res.render("index", { title: "Welcome to LSU Parking Manager" });
 });
@@ -32,10 +59,11 @@ app.get("/", (req, res) => {
 // Availability Page (View Lots)
 app.get("/availability", async (req, res) => {
   try {
-    const lots = await ParkingLot.find();
-    res.render("availability", { title: "Parking Lot Availability", lots });
+    const lots = await ParkingLot.find(); // Fetch parking lot data from MongoDB
+    res.render("availability", { lots }); // Pass data to the EJS template
   } catch (error) {
-    res.status(500).send("Error fetching parking lot data");
+    console.error("Error fetching parking lot data:", error);
+    res.status(500).send("Internal Server Error");
   }
 });
 
@@ -81,8 +109,20 @@ app.get("/api/parking", async (req, res) => {
   }
 });
 
+// Scrape Route (Optional for Manual Data Update)
+app.get("/scrape", async (req, res) => {
+  try {
+    await scrapeParkingData();
+    res.redirect("/availability");
+  } catch (error) {
+    console.error("Error during scraping:", error);
+    res.status(500).send("Error updating parking lot data");
+  }
+});
+
 // Start the Server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`Server started at http://localhost:${PORT}`);
+  await scrapeParkingData(); // Automatically scrape data on server start
 });
