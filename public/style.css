@@ -70,3 +70,10 @@ a:hover {
 .menu-element {
     display: block;
 }
+
+@media (max-width: 768px) {
+    header {
+      text-align: center;
+      padding: 10px;
+    }
+  }
